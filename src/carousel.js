@@ -477,6 +477,7 @@ const Carousel = React.createClass({
           self.animateSlide(null, null, self.getTargetLeft(null, index), function() {
             self.animateSlide(null, 0.01);
             self.props.afterSlide(0);
+            self.setDimensions();
             self.resetAutoplay();
             self.setExternalData();
           });
@@ -490,6 +491,7 @@ const Carousel = React.createClass({
           self.animateSlide(null, null, self.getTargetLeft(null, index), function() {
             self.animateSlide(null, 0.01);
             self.props.afterSlide(endSlide);
+            self.setDimensions();
             self.resetAutoplay();
             self.setExternalData();
           });
@@ -504,6 +506,7 @@ const Carousel = React.createClass({
     }, function() {
       self.animateSlide();
       this.props.afterSlide(index);
+      self.setDimensions();
       self.resetAutoplay();
       self.setExternalData();
     });
@@ -649,20 +652,31 @@ const Carousel = React.createClass({
     var self = this,
       slideWidth,
       slidesToScroll,
-      firstSlide,
       frame,
       frameWidth,
       frameHeight,
-      slideHeight;
+      slideHeight,
+      currentSlide,
+      showingSlides = [];
 
+    currentSlide = this.state.currentSlide || 0
     slidesToScroll = props.slidesToScroll;
     frame = this.refs.frame;
-    firstSlide = frame.childNodes[0].childNodes[0];
-    if (firstSlide) {
-      firstSlide.style.height = 'auto';
-      slideHeight = this.props.vertical ?
-        firstSlide.offsetHeight * props.slidesToShow :
-        firstSlide.offsetHeight;
+
+    for (let i = currentSlide; i < currentSlide + (props.slidesToShow || 1); i++) {
+      let node = frame.childNodes[0].childNodes[i]
+      node && showingSlides.push(node)
+    }
+
+    if (showingSlides.length > 0) {
+      slideHeight = this.props.vertical
+        ? showingSlides.reduce((sum, slide) => (sum + slide.offsetHeight), 0)
+        : (
+          Math.max.apply(null, showingSlides.map((slide) => {
+            slide.style.height = 'auto';
+            return slide.offsetHeight || 100;
+          }))
+        );
     } else {
       slideHeight = 100;
     }
